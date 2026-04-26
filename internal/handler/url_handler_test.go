@@ -107,3 +107,54 @@ func TestURLHandler_Shorten(t *testing.T) {
 		})
 	}
 }
+
+func TestURLHandler_Redirect(t *testing.T) {
+	tests := []struct {
+		name           string
+		shortCode      string
+		mockGetURL     func(ctx context.Context, code string) (string, error)
+		expectedStatus int
+		expectedLocation string
+	}{
+		{
+			name:      "Success",
+			shortCode: "abc123",
+			mockGetURL: func(ctx context.Context, code string) (string, error) {
+				return "https://google.com", nil
+			},
+			expectedStatus:   http.StatusFound,
+			expectedLocation: "https://google.com",
+		},
+		{
+			name:      "Not Found",
+			shortCode: "missing",
+			mockGetURL: func(ctx context.Context, code string) (string, error) {
+				return "", errors.New("not found")
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockSvc := &MockService{GetOriginalURLFunc: tt.mockGetURL}
+			h := NewURLHandler(mockSvc, nil)
+
+			req := httptest.NewRequest(http.MethodGet, "/"+tt.shortCode, nil)
+			rr := httptest.NewRecorder()
+
+			h.Redirect(rr, req)
+
+			if rr.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, rr.Code)
+			}
+
+			if tt.expectedStatus == http.StatusFound {
+				location := rr.Header().Get("Location")
+				if location != tt.expectedLocation {
+					t.Errorf("expected location %s, got %s", tt.expectedLocation, location)
+				}
+			}
+		})
+	}
+}

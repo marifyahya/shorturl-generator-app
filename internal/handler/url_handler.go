@@ -79,6 +79,35 @@ func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
 	h.respondWithJSON(w, http.StatusCreated, shortenResponse{ShortURL: shortURL})
 }
 
+// Redirect handles the redirection from a short code to the original URL.
+// @Summary Redirect to original URL
+// @Description Take a 6-character short code and redirect the user to the original long URL
+// @Param   short_code path string true "Short Code"
+// @Success 302 {string} string "Found"
+// @Failure 404 {object} errorResponse
+// @Router /{short_code} [get]
+func (h *URLHandler) Redirect(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	// Simple path parsing for /:short_code
+	code := strings.TrimPrefix(r.URL.Path, "/")
+	if code == "" {
+		h.respondWithError(w, http.StatusBadRequest, "short code is required")
+		return
+	}
+
+	originalURL, err := h.svc.GetOriginalURL(r.Context(), code)
+	if err != nil {
+		h.respondWithError(w, http.StatusNotFound, "short code not found")
+		return
+	}
+
+	http.Redirect(w, r, originalURL, http.StatusFound)
+}
+
 func (h *URLHandler) respondWithError(w http.ResponseWriter, code int, message string) {
 	h.respondWithJSON(w, code, errorResponse{Error: message})
 }
