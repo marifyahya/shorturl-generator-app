@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/yourusername/shorturl/internal/config"
+	"github.com/marifyahya/shorturl-generator-app/internal/config"
 )
 
 func main() {

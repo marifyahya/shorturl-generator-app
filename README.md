@@ -26,8 +26,8 @@ This application allows users to shorten long URLs into manageable 6-character c
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/yourusername/shorturl.git
-cd shorturl
+git clone https://github.com/marifyahya/shorturl-generator-app.git
+cd shorturl-generator-app
 ```
 
 ### Step 2: Environment Setup
