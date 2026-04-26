@@ -108,6 +108,37 @@ func (h *URLHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, originalURL, http.StatusFound)
 }
 
+// GetStats handles the retrieval of statistics for a short URL.
+// @Summary Get statistics for a short URL
+// @Description Return metadata and hit count for a given short code
+// @Produce  json
+// @Param   short_code path string true "Short Code"
+// @Success 200 {object} model.URL
+// @Failure 404 {object} errorResponse
+// @Router /api/stats/{short_code} [get]
+func (h *URLHandler) GetStats(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	// Simple path parsing for /api/stats/:short_code
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 4 || parts[3] == "" {
+		h.respondWithError(w, http.StatusBadRequest, "short code is required")
+		return
+	}
+	code := parts[3]
+
+	urlData, err := h.svc.GetStats(r.Context(), code)
+	if err != nil {
+		h.respondWithError(w, http.StatusNotFound, "short code not found")
+		return
+	}
+
+	h.respondWithJSON(w, http.StatusOK, urlData)
+}
+
 func (h *URLHandler) respondWithError(w http.ResponseWriter, code int, message string) {
 	h.respondWithJSON(w, code, errorResponse{Error: message})
 }

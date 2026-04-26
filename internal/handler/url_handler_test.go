@@ -110,10 +110,10 @@ func TestURLHandler_Shorten(t *testing.T) {
 
 func TestURLHandler_Redirect(t *testing.T) {
 	tests := []struct {
-		name           string
-		shortCode      string
-		mockGetURL     func(ctx context.Context, code string) (string, error)
-		expectedStatus int
+		name             string
+		shortCode        string
+		mockGetURL       func(ctx context.Context, code string) (string, error)
+		expectedStatus   int
 		expectedLocation string
 	}{
 		{
@@ -153,6 +153,58 @@ func TestURLHandler_Redirect(t *testing.T) {
 				location := rr.Header().Get("Location")
 				if location != tt.expectedLocation {
 					t.Errorf("expected location %s, got %s", tt.expectedLocation, location)
+				}
+			}
+		})
+	}
+}
+
+func TestURLHandler_GetStats(t *testing.T) {
+	tests := []struct {
+		name           string
+		shortCode      string
+		mockGetStats   func(ctx context.Context, code string) (*model.URL, error)
+		expectedStatus int
+		expectedHits   int
+	}{
+		{
+			name:      "Success",
+			shortCode: "abc123",
+			mockGetStats: func(ctx context.Context, code string) (*model.URL, error) {
+				return &model.URL{ShortCode: "abc123", Hits: 10}, nil
+			},
+			expectedStatus: http.StatusOK,
+			expectedHits:   10,
+		},
+		{
+			name:      "Not Found",
+			shortCode: "missing",
+			mockGetStats: func(ctx context.Context, code string) (*model.URL, error) {
+				return nil, errors.New("not found")
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockSvc := &MockService{GetStatsFunc: tt.mockGetStats}
+			h := NewURLHandler(mockSvc, nil)
+
+			req := httptest.NewRequest(http.MethodGet, "/api/stats/"+tt.shortCode, nil)
+			rr := httptest.NewRecorder()
+
+			h.GetStats(rr, req)
+
+			if rr.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, rr.Code)
+			}
+
+			if tt.expectedStatus == http.StatusOK {
+				var resp model.URL
+				json.Unmarshal(rr.Body.Bytes(), &resp)
+				if resp.Hits != tt.expectedHits {
+					t.Errorf("expected hits %d, got %d", tt.expectedHits, resp.Hits)
 				}
 			}
 		})
