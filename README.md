@@ -10,7 +10,7 @@ This application allows users to shorten long URLs into manageable 6-character c
 - **Database**: PostgreSQL 15
 - **Infrastructure**: Docker & Docker Compose
 - **Migrations**: golang-migrate
-- **Documentation**: OpenAPI 3.0 (JSON)
+- **Documentation**: OpenAPI 3.0 (YAML)
 
 ## ✨ Features
 - [x] **URL Shortening**: Generate unique 6-character alphanumeric codes.
@@ -86,7 +86,7 @@ The API will be available at the port defined in `SERVER_PORT` (default: `http:/
 | `GET` | `/:short_code` | Redirect to the original long URL. |
 | `GET` | `/api/stats/:short_code` | Get statistics (hits, created_at, etc). |
 
-Full specification is available in [docs/openapi.json](docs/openapi.json).
+Full specification is available in [docs/openapi.yaml](docs/openapi.yaml).
 
 ---
 Built with ❤️ by M. Arif Yahya
