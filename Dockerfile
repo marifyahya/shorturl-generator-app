@@ -5,6 +5,10 @@ WORKDIR /app
 COPY go.mod ./
 RUN go mod download || true
 
+# Install Air for hot reloading
+RUN go install github.com/air-verse/air@v1.61.7
+
+
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o shorturl ./cmd/api
 
