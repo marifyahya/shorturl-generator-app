@@ -8,7 +8,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     deploy:
       resources:
         limits:
@@ -22,19 +22,13 @@ services:
   api:
     build: .
     ports:
-      - "8081:8080"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     deploy:
       resources:
         limits:
           memory: 128M
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: password
-      DB_NAME: shorturl
-      SERVER_PORT: 8080
-      BASE_URL: http://localhost:8080/
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy

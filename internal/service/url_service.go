@@ -7,6 +7,7 @@ import (
 
 	"github.com/marifyahya/shorturl-generator-app/internal/model"
 	"github.com/marifyahya/shorturl-generator-app/internal/repository"
+	"strings"
 )
 
 type URLService interface {
@@ -24,6 +25,16 @@ func NewURLService(repo repository.URLRepository) URLService {
 }
 
 func (s *urlService) Shorten(ctx context.Context, originalURL string) (string, error) {
+	originalURL = strings.TrimSpace(originalURL)
+	if originalURL == "" {
+		return "", errors.New("url cannot be empty")
+	}
+
+	// Auto-fix: Add https:// if no protocol is provided
+	if !strings.HasPrefix(originalURL, "http://") && !strings.HasPrefix(originalURL, "https://") {
+		originalURL = "https://" + originalURL
+	}
+
 	maxRetries := 5
 	for i := 0; i < maxRetries; i++ {
 		code := GenerateShortCode()
